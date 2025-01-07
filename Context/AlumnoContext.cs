@@ -25,7 +25,10 @@ namespace AlumnosYCursos_ASP.NET_CORE_MVC_.Context
 
             modelBuilder.Entity<Curso>(curso =>
             {
-                curso.
+                curso.ToTable("curso");
+                curso.HasKey(c=>c.idCurso);
+                curso.Property(c => c.nombreCurso).IsRequired();
+                curso.Property(c=>c.descripcionCurso).IsRequired(false);
 
             });
 

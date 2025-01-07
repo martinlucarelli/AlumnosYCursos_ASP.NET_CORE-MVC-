@@ -1,7 +1,12 @@
+using AlumnosYCursos_ASP.NET_CORE_MVC_.Context;
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+//Conexion a la base de datos
+builder.Services.AddSqlServer<AlumnoContext>(builder.Configuration.GetConnectionString("cnBaseDeDatos"));
 
 var app = builder.Build();
 
