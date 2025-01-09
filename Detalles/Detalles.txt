@@ -1,0 +1,78 @@
+﻿
+
+Conexion a la base de datos con EF
+	Para realizar la conexion a la base de datos se hace igual que como hacia con las APIS. Se crea la clase controller y en ella
+	los dbset que representan las tablas y luego con ModelCreating se indican las propiedades de cada campo.
+	En cuanto a la conexion, es exactamente igual, se crea el connectio string en el AppSettings.JSON y luego desde program.cs se
+	indica la conexion.
+
+Problema al devolver los Curos:
+	Cuando comence a programar los controllers intente que se retornara directamente los bdset de cursos, pero me daba un error que
+	decia que no eran compatibles los datos, esto se debe a que no se puede devolver un dbset sino que se debe devolver una lista.
+	Para solucionarlo fue muy sencillo, simplemente utilice .ToList() para cambiar ese dbset a lista.
+
+	    public IActionResult MostrarCursos()
+        {               
+            return View(context.cursos); ---> Aca daba error porque no puede retornar un dbset a la view.
+        }
+
+		public IActionResult MostrarCursos()
+        {
+            var listaDeCursos = context.cursos.ToList();  ---> Esta es la manera correcta.
+            return View(listaDeCursos); 
+        }
+		
+		<<IMPORTANTE>> : El tipo de dato que va a retornar debe coincidir con el tipo @model que va a manejar la vista del metodo
+		ej:
+		@model Curso --> Si el @model del archivo .cshtml es solamente curso, nos va a dar error ya que no retorna solo un objeto
+		sino que una lista de objetos del tipo curso.
+
+		@model List<Curso> --> Esta es la forma correcta, ya que el dato que retorna en el controller coincide con el model que
+		maneja la vista.
+
+Editar (pasar id como parametro, conseguir id aunque no este en la pagina)
+
+	Cuando comence a hacer la parte de editar un curso surgio un problema ya que la id no estaba explicitamente en la vista y no sabia
+	como traerla para poder hacer la busqueda por id del registro que queria modifcar.
+	Para esto lo primero que hice fue pasar el id por el URL al momento de abrir la vista del metodo modificar, es decir, en la vista que
+	contiene la lista de cursos, ya que ahi esta la opcion de modificar el curso.
+	MostrarCursos.cshtml:
+
+		<a asp-action="ModificarCurso" asp-controller="Curso" asp-route-id="@curso.idCurso" class="btn btn-warning">Editar</a>
+		Como esta vista utiliza una lista de Curso (no utiliza el DTO), puedo utilizar asp-route-id"@curso.IdCurso" para enviar el
+		id del curso como parametro a la hora de iniciar la accion de ModificarCurso, recordemos que este metodo es solo la vista
+		no contiene la logica para actualizar un registro de la base de datos.
+
+	Una vez que ya envie la id por parametro al metodo que devuelve la vista lo que va hacer este metodo es:
+		1. Buscar desde el context.Cursos un curso que coincida con la id (la busqueda puede ser con find() o con
+		firstOrDefault()), las dos funciones que se utilicen para buscar al objeto que se desea modificar van a devolver ese objeto,
+		por lo tanto podemos interactuar con ese objeto.
+
+		2. Si el curso que se busca es encontrado, lo que va hacer es crear un objeto del tipo CursoDTO y ese objeto se va a llenar
+		con los datos del objeto que nos devolvio la busqueda.
+
+		3. Creamos un ViewBag(). Los viewbag sirven para pasar datos desde el controlador a la vista de manera dinamica, sin necesidad
+		de crear un modelo para ello, ademas solamente se puede tener un modelo por vista, asi que en este caso fue muy util ya que el 
+		modelo que utilizamos en la vista es el CursoDto pero nosotros queremos enviar el ID y el id no pertenece al modelo DTO por eso
+		utilizamos un ViewBag para pasar ese dato.
+		Crear Viewbag():
+			ViewBag.CursoId = id; --> CursoID se llamara el Viewbag y lo igualamos al id, id es el dato que recibimos por parametro
+			tambien podriamos igualarlo a =curso.idCurso.
+		
+		4.Por ultimo hacemos un return View(CursoDTO). Con esto conseguimos enviar a la vista el objeto que instanciamos, esto nos
+		va a permitir que los campos para completar el registro no esten vacios, sino que contengan los datos del registro que se
+		quiere modificar, asi es mas como para el usuario si este solamente quiere modificar el nombre o la descripcion.
+
+		5. Una vez dentro de la vista, debemos indicar que el modelo que utilizaremos es el de CursoDTO, luego podemos copiar el
+		mismo formulario que utilizamos para crear un nuevo curso, pero le debemos agregar un nuevo input que sera para el id, este
+		input debe ser del tipo hidden.
+
+			<input type="hidden" name="id" value="@ViewBag.CursoId" /> Como se puede ver, en este input enviamos el dato del id con el
+			viewbag.
+
+		Luego cada input va a estar completo por defecto con los datos del objeto que enviamos por parametro en el return View()
+		de la funcion
+		Ej:
+			<input asp-for="nombreCurso" type="text" class="form-control">--> Con asp-for conseguimos esto
+
+			

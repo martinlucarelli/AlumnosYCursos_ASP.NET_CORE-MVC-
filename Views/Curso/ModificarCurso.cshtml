@@ -1,0 +1,38 @@
+﻿@model AlumnosYCursos_ASP.NET_CORE_MVC_.Models.DTO_S.CursoDTO
+@{
+    ViewData["Title"] = "ModificarCurso";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card">
+    <div class="card-body">
+
+        <form asp-action="ModificarCurso" asp-controller="Curso" method="post">
+            <input type="hidden" name="id" value="@ViewBag.CursoId" />
+
+            <div class="mb-3">
+                <label class="form-label">Nombre</label>
+                <input asp-for="nombreCurso" type="text" class="form-control">
+                <span asp-validation-for="nombreCurso" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Cantidad de horas</label>
+                <input asp-for="cargaHoraria" type="number" class="form-control">
+                <span asp-validation-for="cargaHoraria" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Descripcion</label>
+                <input asp-for="descripcionCurso" type="text" class="form-control">
+            </div>
+
+
+
+            <button type="submit" class="btn btn-primary">Submit</button>
+        </form>
+
+
+    </div>
+</div>
+
