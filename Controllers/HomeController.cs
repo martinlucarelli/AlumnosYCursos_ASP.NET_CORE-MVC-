@@ -20,7 +20,6 @@ namespace AlumnosYCursos_ASP.NET_CORE_MVC_.Controllers
 
         public IActionResult Index()
         {
-
             return View();
         }
 

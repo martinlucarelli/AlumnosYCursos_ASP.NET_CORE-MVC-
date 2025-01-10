@@ -13,15 +13,6 @@ namespace AlumnosYCursos_ASP.NET_CORE_MVC_.Context
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
-            modelBuilder.Entity<Alumno>(alumno =>
-            {
-                alumno.ToTable("alumno");
-                alumno.HasKey(a=> a.idAlumno); //Se debe incrementar el id en cada registro a partir del 100.
-                alumno.Property(a=>a.nombreAlumno).IsRequired().HasMaxLength(80);
-                alumno.Property(a => a.edadAlumno).IsRequired();
-                //clave foranea
-                alumno.HasOne(a=>a.Curso).WithMany(c=>c.alumnos).HasForeignKey(c=>c.idAlumno);
-            });
 
             modelBuilder.Entity<Curso>(curso =>
             {
@@ -31,6 +22,20 @@ namespace AlumnosYCursos_ASP.NET_CORE_MVC_.Context
                 curso.Property(c=> c.cargaHoraria).IsRequired();
                 curso.Property(c=>c.descripcionCurso).IsRequired(false);
 
+            });
+
+            modelBuilder.Entity<Alumno>(alumno =>
+            {
+                alumno.ToTable("alumno");
+                alumno.HasKey(a => a.idAlumno);
+                alumno.Property(a => a.idAlumno).ValueGeneratedOnAdd(); //Generar id automaticamente al agregar registro.
+                alumno.Property(a => a.idAlumno).UseIdentityColumn(1000, 1);//Iniciar en 1000 e incrementar en 1.
+
+                //Se debe incrementar el id en cada registro a partir del 100.
+                alumno.Property(a => a.nombreAlumno).IsRequired().HasMaxLength(80);
+                alumno.Property(a => a.edadAlumno).IsRequired();
+                //clave foranea
+                alumno.HasOne(a => a.Curso).WithMany(c => c.alumnos).HasForeignKey(a => a.cursoId);
             });
 
         }

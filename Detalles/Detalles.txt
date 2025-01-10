@@ -75,4 +75,189 @@ Editar (pasar id como parametro, conseguir id aunque no este en la pagina)
 		Ej:
 			<input asp-for="nombreCurso" type="text" class="form-control">--> Con asp-for conseguimos esto
 
+
+Mostrar nombre de curso en lugar de id:
+
+	Cuando comence a hacer la vista de los alumnos surgio el problema de que el modelo alumno tiene un campo que es IdCurso que contiene
+	el curso al cual pertence, pero lo correcto es mostrar el nombre del curso en lugar del id. El problema es que el modelo que pasamos
+	a la vista no contiene el campo nombre de curso.
+	Solucion: 
+		Para solucionar esto tuve que utilizar LINQ para hacer un join y asi traerme el nombre del curso, lo que pasa es que al
+		utilizar LINQ lo que conseguimos es nos devuelva una nueva tabla con la consulta que hicimos. Esta nueva tabla que nos devuelve
+		la consulta no es del tipo Alumno ya que el modelo alumno no contiene el campo nombreCurso, por lo tanto esta tabla va a ser
+		del tipo anonimo (sin nombre).
+		El tipo de dato anonimo debe ser igual al modelo que se utiliza en la vista, para esto en la vista debemos indicar el modelo
+		'@model dynamic', este tipo de modelo nos permite trabajar con datos en los que no se conoce su tipo (como el de la consulta
+		LINQ)
+		
+		Consulta Join con LINQ:
+
+            var alumnosConCurso = context.alumnos.Join(context.cursos,
+                                    alumno=> alumno.cursoId,
+                                    curso=> curso.idCurso,
+                                    (alumno,curso) => new
+                                    {
+                                        alumno.idAlumno,
+                                        alumno.nombreAlumno,
+                                        alumno.edadAlumno,
+                                        cursoNombre=curso.nombreCurso
+                                    })
+                                    .ToList();
+									
+			return View(alumnosConCurso);
+
+
+			1.context.alumnos -> Es la tabla o colección base desde donde partimos (similar al FROM alumnos en SQL).
+
+			2.Metodo Join. Primero le indicamos la tabla que vamos a combinar 'context.cursos', luego tiene 2 claves y un selector.
+				1era clave: alumno => alumno.cursoId → Es el campo en la tabla base que conecta con la otra tabla.
+				2da clave: curso => curso.idCurso → Es el campo de la tabla relacionada.
+				Selector: (alumno, curso) => new { ... } → Indica cómo queremos combinar los resultados.
+
+			3. En la parte (alumno, curso) => new { ... }, definimos qué campos queremos incluir en el resultado y cómo llamarlos, es
+			decir que aca indicamos como queremos que sea la tabla que va a devolver. Esta nueva tabla parte de dos objetos 
+			(alumnos,curso) por eso podemos utilizar las propiedades de ellos.
+			Se debe tener en cuenta que como estamos creando una nueva tabla, tambien estamos creando un nuevo tipo de dato u objeto
+			por lo tanto podemos realizar cierta logica en estos campos. Por ejemplo, si en lugar de tener su edad tendriamos la fecha
+			de nacimiento, podemos hacer una operacion que reste la fecha actual con la fecha de nacimiento y asi conseguimos que su edad
+			se mantenga actualizada.
+
+			4. Utilizamos .ToList() para convertir el resultado en una lista.
+
+			5. Devolvemos la vista con la lista que nos devolvio la consulta
+
+		Objeto dynamic:
 			
+			Este objeto nos permite declarar variables cuyo tipo exacto no se conoce en tiempo de compilación. Es útil para trabajar
+			con objetos donde el esquema puede cambiar o no es fijo.
+
+			Caracteristicas:
+				
+				-No tiene validación en tiempo de compilación: Esto significa que no podés detectar errores relacionados con propiedades
+				o métodos hasta que se ejecute el programa.
+
+				-Ideal para resultados anónimos: Cuando usás new { ... } en LINQ, estás creando un objeto anónimo (sin nombre). 
+				dynamic te permite trabajar con esos objetos en la vista o en otras partes del código.
+
+				-Flexibilidad total: Podés agregar cualquier propiedad, pero conlleva el riesgo de errores en tiempo de ejecución.
+
+				Ejemplo de error en tiempo de ejecucion
+
+					dynamic obj = new { Nombre = "Martín", Edad = 20 };
+					Console.WriteLine(obj.Nombre); // Funciona
+					Console.WriteLine(obj.Altura); // Error en tiempo de ejecución
+				
+				En este caso declaramos un objeto que tiene las propiedades nombre y edad, pero pedimos que escriba por consola la
+				altura, altura no es una propiedad del objeto, pero sin embargo, esto no se va a marcar como error, pero el error lo va 
+				a tirar en tiempo de ejecucion.
+
+		
+		Objeto dynamic en la vista:
+
+			@model dynamic --> Indicamos el modelo del tipo dynamic.
+
+			<table class="table table-hover">
+				<thead>
+					<tr>
+						<th>#</th>
+						<th>Alumno</th>
+						<th>Edad</th>
+						<th>Curso</th>
+					</tr>
+				</thead>
+				<tbody>
+					@foreach (var item in Model) --> Como enviamos por paramtero en el return View() la lista que nos devolvio la
+					{								consulta LINQ, aca podemos iterar sobre ella y mostrar cada registro con el nombre	
+													del curso en lugar que el id.
+						<tr>						
+							<td>@item.idAlumno</td>
+							<td>@item.nombreAlumno</td>
+							<td>@item.edadAlumno</td>
+							<td>@item.cursoNombre</td>
+						</tr>
+					
+
+
+
+DTO y ViewModel:
+	
+	Mientras realizaba la vista para agregar a un nuevo alumno, surgio un porblema ya que yo necesitaba que aparezca un menu desplegable
+	con los distintos cursos que le puedo asignar al alumno. El problema era el modelo que iba a recibir esa vista, ya que Alumno.cs
+	contenia un idCurso pero no contenia el nombre de los cursos. Para esto debia crear un modelo especial que ademas de contener
+	los datos del alumno, tambien tenga la lista con los cursos. Lo primero que se ocurrio crear fue un DTO y no estaba equivocado,
+	pero el termino DTO se utiliza para enviar datos entre capas, por ejemplo la capa service y la capa controller, mientras que si
+	queremos enviar datos entre vistas y controllers utilizamos el termino ViewModel.
+	El dto como el viewmodel funcionan de igual manera, en ambos se crea una clase con los datos que deseamos manejar. Simplemete lo 
+	especifico por que es una buena practica llamarlo como ViewModel y no como DTO. De hecho el CursoDTO deberia ser un ViewModel.
+
+	Ejemplo ViewModel:
+		public class AlumnoViewModel
+		{
+
+			[Required(ErrorMessage = "Campo obligatorio")]
+			public string? nombreAlumno { get; set; }
+			[Required(ErrorMessage = "Campo obligatorio")]
+			public int edadAlumno { get; set; }
+			public int cursoId { get; set; }
+
+			[NotMapped]
+			public List<Curso>? cursos { get; set; } --> Lista de cursos
+		}
+
+	Implementacion
+
+		public IActionResult AgregarAlumno()
+        {
+
+           var viewModel= new AlumnoViewModel();
+
+            viewModel.cursos=context.cursos.ToList();
+
+            return View(viewModel);
+        }
+
+		En el metodo que solamente devuelve la vista lo hice fue crear un objeto del tipo AlumnoViewModel y luego a partir del context
+		guarde la lista de cursos (la que esta en la base de datos) en la lista de cursos (la que esta en el viewModel).
+		Luego mande el viewModel a la vista.
+
+		[HttpPost]
+        public IActionResult AgregarAlumno(AlumnoViewModel alumno)
+        {
+            alumno.cursos = null; ---> Cuando el usuario completa el formulario nunca llena la lista de cursos, por eso tira un error
+										para evitar el error se completa la lista null.
+            if(!ModelState.IsValid) 
+            {
+                var errores = ModelState.Values.SelectMany(v => v.Errors) //Capturar los errores del modelstate
+                               .Select(e => e.ErrorMessage);
+
+                foreach (var error in errores)
+                {
+                    logger.LogError(error);
+                }
+
+                return BadRequest();
+            }
+
+            var newAlumno = new Alumno
+            {
+                nombreAlumno = alumno.nombreAlumno,
+                edadAlumno = alumno.edadAlumno,
+                cursoId = alumno.cursoId,
+                
+                
+            };
+
+            context.alumnos.Add(newAlumno);
+            context.SaveChanges();
+            return RedirectToAction("AlumnoAgregadoConExito");
+        }
+
+		En el metodo que realiza la logica en lo unico que aparece el viewmodel es que es el tipo de dato pasado por parametro, este dato
+		lo recibe de la vista que es la que contiene el formulario.
+
+	Por lo tanto el ViewModel sirvio para poder colocar la lista de cursos y que el usuario elija el curso desde el menu desplegable y
+	tambien para que cuando el usuario complete el formulario, los datos sean enviado a traves del viewModel.
+
+
+
+					

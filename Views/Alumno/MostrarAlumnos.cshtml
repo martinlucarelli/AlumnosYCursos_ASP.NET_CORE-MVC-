@@ -1,0 +1,41 @@
+﻿@model dynamic
+@{
+    ViewData["Title"] = "MostrarAlumnos";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+<div class="card">
+    <div class="card-body">
+        <a asp-action="AgregarAlumno" asp-controller="Alumno" class="btn btn-success">Nuevo Alumno</a>
+        <table class="table table-hover">
+            <thead>
+                <tr>
+                    <th scope="col">#</th>
+                    <th scope="col">Alumno</th>
+                    <th scope="col">Edad</th>
+                    <th scope="col">Curso</th>
+                </tr>
+            </thead>
+            <tbody>
+
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td></td>
+                        <td>@item.nombreAlumno</td>
+                        <td>@item.edadAlumno</td>
+                        <td>@item.cursoNombre</td>
+                        <td>
+                           
+                        </td>
+                    </tr>
+                }
+
+            </tbody>
+        </table>
+
+
+    </div>
+</div>
+
