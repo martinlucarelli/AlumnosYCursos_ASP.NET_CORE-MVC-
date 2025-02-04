@@ -1,0 +1,48 @@
+﻿@model AlumnosYCursos_ASP.NET_CORE_MVC_.Models.ViewModels.AlumnoViewModel
+@{
+    ViewData["Title"] = "ModificarAlumno";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="card">
+    <div class="card-body">
+
+        <form asp-action="ModificarAlumno" asp-controller="Alumno" method="post">
+
+            <legend>Nuevo alumno</legend>
+            <div class="mb-3">
+                <label class="form-label">Nombre completo</label>
+                <input asp-for="nombreAlumno" type="text" class="form-control">
+                <span asp-validation-for="nombreAlumno" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label">Edad</label>
+                <input asp-for="edadAlumno" type="number" class="form-control">
+                <span asp-validation-for="edadAlumno" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label for="disabledSelect" class="form-label">Curso</label>
+                <select asp-for="cursoId" class="form-select">
+                    <option value="" disabled selected>Seleccione un curso</option>
+                    @foreach (var curso in Model.cursos)
+                    {
+                        <option value="@curso.idCurso">@curso.nombreCurso</option>
+                    }
+
+
+                </select>
+
+            </div>
+
+            <button type="submit" class="btn btn-primary">Guardar</button>
+
+        </form>
+
+        
+
+
+    </div>
+</div>
+

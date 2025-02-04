@@ -10,6 +10,9 @@ namespace AlumnosYCursos_ASP.NET_CORE_MVC_.Models.ViewModels
         public string? nombreAlumno { get; set; }
         [Required(ErrorMessage = "Campo obligatorio")]
         public int edadAlumno { get; set; }
+
+        [Required(ErrorMessage ="Debe seleccionar un curso")]
+        [Range(1, int.MaxValue, ErrorMessage = "Debe seleccionar un curso válido")]
         public int cursoId { get; set; }
 
         [NotMapped]
